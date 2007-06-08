@@ -9,8 +9,6 @@
 
 #include "list.h"
 #include "field.h"
-#include "gr.h"
-#include "player.h"
 
 typedef struct {
 	int num;
@@ -18,6 +16,8 @@ typedef struct {
 } map_t;
 
 #include "map.h"
+#include "gr.h"
+#include "player.h"
 
 field_t *
 map_getfieldforcoords(map_t *this, int x, int y)
@@ -118,6 +118,9 @@ new_map(int num, player_t *player)
 void
 free_map(map_t *this)
 {
+	if (this == NULL) {
+		return;
+	}
 	free_list(this->fields);
 	free(this);
 }
@@ -148,5 +151,11 @@ map_isdone(map_t *this)
 	}
 	free_list_iterator(i);
 	return isdone;
+}
+
+int
+map_getnum(map_t *this)
+{
+	return this->num;
 }
 

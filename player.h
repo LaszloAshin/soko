@@ -5,17 +5,19 @@
 #ifndef _player_H
 #define _player_H	1
 
-#include "field.h"
-
 #ifndef _player_C
 typedef struct _player_t player_t;
 #endif /* _player_C */
+
+#include "field.h"
+#include "map.h"
 
 player_t *new_player();
 void free_player(player_t *this);
 
 int player_move(player_t *this, int dir);
 void player_setpos(player_t *this, field_t *field);
+void player_keyboard(player_t *this, map_t *map, int key);
 
 #endif /* _player_H */
 

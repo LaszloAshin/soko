@@ -8,14 +8,14 @@ LDFLAGS="-s -O2 -lSDL"
 BDIR="build"
 
 # programs to build, separated by one space
-#PROGS="soko armsoko"
-PROGS="soko"
+PROGS="soko armsoko"
+#PROGS="soko"
 
 # settings for each program listed in PROGS (above)
 # FILES is required for each PROG (filenames must be separated by one space)
 # CC, CFLAGS, LDFLAGS and BDIR is optional
 # if not defined, the default setting is used for that variable
-FILES_soko="main gr map field list player"
+FILES_soko="main gr map field list player menu"
 
 FILES_armsoko=${FILES_soko}
 BDIR_armsoko="release"

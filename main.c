@@ -5,6 +5,7 @@
 #include "field.h"
 #include "map.h"
 #include "gr.h"
+#include "menu.h"
 
 static map_t *curmap = NULL;
 static player_t *player = NULL;
@@ -18,33 +19,49 @@ postQuit()
 	SDL_PushEvent(&ev);
 }
 
+static void (*keyboard)(int key);
+
 static void
-edKeyboard(int key)
+main_playerkeyboard(int key)
 {
-	int bo = 0;
-	switch (key) {
-		case SDLK_UP:
-			bo = player_move(player, FIELD_UP);
-			break;
-		case SDLK_RIGHT:
-			bo = player_move(player, FIELD_RIGHT);
-			break;
-		case SDLK_DOWN:
-			bo = player_move(player, FIELD_DOWN);
-			break;
-		case SDLK_LEFT:
-			bo = player_move(player, FIELD_LEFT);
-			break;
-		case SDLK_ESCAPE:
-			postQuit();
-			break;
-		case SDLK_RETURN:
-			break;
-	}
-	if (bo) bo = map_isdone(curmap);
-	if (bo) {
-		printf("map is done!\n");
-	}
+	player_keyboard(player, curmap, key);
+}
+
+void
+main_switchtomenu()
+{
+	keyboard = menu_keyboard;
+	menu_draw();
+}
+
+void
+main_switchtogame()
+{
+	if (curmap == NULL) return;
+	keyboard = main_playerkeyboard;
+	map_draw(curmap);
+}
+
+int
+main_loadmap(int num)
+{
+	free_map(curmap);
+	curmap = new_map(num, player);
+	return curmap != NULL;
+}
+
+int
+main_nextmap()
+{
+	if (curmap == NULL) return 0;
+	return main_loadmap(map_getnum(curmap) + 1);
+}
+
+int
+main_prevmap()
+{
+	if (curmap == NULL) return 0;
+	return main_loadmap(map_getnum(curmap) - 1);
 }
 
 static int SDLCALL
@@ -73,14 +90,13 @@ main()
 	SDL_EnableUNICODE(1);
 	SDL_SetEventFilter(EventFilter);
 	player = new_player();
-	curmap = new_map(1, player);
-	map_draw(curmap);
+	main_switchtomenu();
 	while (!SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_QUITMASK)) {
 		SDL_Event ev;
 
 		SDL_PumpEvents();
 		if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_KEYDOWNMASK) > 0) {
-			edKeyboard(ev.key.keysym.sym);
+			keyboard(ev.key.keysym.sym);
 		}
 		SDL_Delay(5);
 	}
