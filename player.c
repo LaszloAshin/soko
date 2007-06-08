@@ -81,8 +81,7 @@ player_keyboard(player_t *this, map_t *map, int key)
 	}
 	if (bo) bo = map_isdone(map);
 	if (bo) {
-		main_nextmap();
-		main_switchtogame();
+		main_nextmap() ? main_switchtogame() : main_switchtomenu();
 	}
 }
 

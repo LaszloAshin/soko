@@ -145,10 +145,19 @@ field_draw(const field_t *this)
 			(this->y + 1) * blocksize - 1
 		);
 	} else if (this->type & FIELD_PLAYER) {
-		grOctagon(
-			this->x * blocksize + blocksize / 2,
-			this->y * blocksize + blocksize / 2,
-			blocksize / 2 - 1
+		grSetColor(grRGB(0, 0xa0, 0));
+		grBar(
+			this->x * blocksize + 1,
+			this->y * blocksize + 1,
+			(this->x + 1) * blocksize - 2,
+			(this->y + 1) * blocksize - 2
+		);
+		grSetColor(0);
+		grRectangle(
+			this->x * blocksize + 1,
+			this->y * blocksize + 1,
+			(this->x + 1) * blocksize - 2,
+			(this->y + 1) * blocksize - 2
 		);
 	}
 }

@@ -386,13 +386,14 @@ grEnd()
 			if (ua.x2 > vp->x2) ua.x2 = vp->x2;
 			if (ua.y2 > vp->y2) ua.y2 = vp->y2;
 #ifdef INVERTFB
-			ua.y1 = sf->h - 1 - ua.y1;
+			ua.y1 = sf->h - ua.y1;
 			ua.y2 = sf->h - 1 - ua.y2;
 			isw(&ua.y1, &ua.y2);
 			ua.x1 = sf->w - ua.x1;
 			ua.x2 = sf->w - 1 - ua.x2;
 			isw(&ua.x1, &ua.x2);
 			if (ua.x2 >= sf->w) ua.x2 = sf->w - 1;
+			if (ua.y2 >= sf->h) ua.y2 = sf->h - 1;
 #endif /* INVERTFB */
 			unsigned w = ua.x2 - ua.x1 + 1;
 			unsigned h = ua.y2 - ua.y1 + 1;
@@ -409,7 +410,8 @@ grSetSurface(SDL_Surface *s)
 	grSetPixelMode(grPixelMode);
 	grSetViewPort(0, 0, sf->w - 1, sf->h - 1);
 #ifdef INVERTFB
-	pixelsend = sf->pixels + (sf->w * sf->h * sf->format->BytesPerPixel);
+	pixelsend = sf->pixels +
+		((sf->w * sf->h - 1) * sf->format->BytesPerPixel);
 #endif /* INVERTFB */
 	return !0;
 }
