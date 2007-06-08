@@ -51,6 +51,13 @@ main_loadmap(int num)
 }
 
 int
+main_restartmap()
+{
+	if (curmap == NULL) return 0;
+	return main_loadmap(map_getnum(curmap));
+}
+
+int
 main_nextmap()
 {
 	if (curmap == NULL) return 0;

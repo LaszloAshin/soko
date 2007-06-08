@@ -19,6 +19,14 @@ menu_newgame()
 }
 
 static void
+menu_restartmap()
+{
+	if (main_restartmap()) {
+		main_switchtogame();
+	}
+}
+
+static void
 menu_nextmap()
 {
 	if (main_nextmap()) {
@@ -39,6 +47,7 @@ static struct {
 	void (*action)(void);
 } items[] = {
 	{ "New game", menu_newgame },
+	{ "Restart map", menu_restartmap},
 	{ "Next map", menu_nextmap },
 	{ "Previous map", menu_prevmap },
 	{ "Exit game", postQuit },
