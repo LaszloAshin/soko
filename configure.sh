@@ -2,14 +2,14 @@
 # Makefile generator script by Laszlo Ashin <laszlo@ashin.hu>
 
 # default settings for make
-CC="ccache gcc"
+CC="gcc"
 CFLAGS="-Wall"
 LDFLAGS="-s -O2 -lSDL"
 BDIR="build"
+CCPREFIX="ccache"
 
 # programs to build, separated by one space
 PROGS="soko armsoko"
-#PROGS="soko"
 
 # settings for each program listed in PROGS (above)
 # FILES is required for each PROG (filenames must be separated by one space)
@@ -19,7 +19,7 @@ FILES_soko="main gr map field list player menu"
 
 FILES_armsoko=${FILES_soko}
 BDIR_armsoko="release"
-CC_armsoko="ccache arm-linux-gnu-gcc"
+CC_armsoko="arm-linux-gnu-gcc"
 CFLAGS_armsoko="-Wall -I/home/laci/arm/include"
 LDFLAGS_armsoko="-s -O2 -Wl,-rpath-link,/home/laci/arm/lib -L/home/laci/arm/lib -lSDL"
 
@@ -30,21 +30,51 @@ function put() {
 	echo "${1}" >> Makefile
 }
 
+# check the default compiler
+${CC} &> /dev/null
+if [ "x${?}" == "x127" ]; then
+	echo "ERROR: Default compiler is not available: ${CC}"
+	exit 1
+fi
+
+# check the compiler prefix if defined
+if [ ${CCPREFIX} ]; then
+	${CCPREFIX} &> /dev/null
+	if [ "x${?}" == "x127" ]; then
+		echo "WARNING: compiler prefix is not available: ${CCPREFIX}"
+		CCPREFIX=
+	fi
+fi
+
 echo "Creating Makefile"
 rm -f Makefile
 put '.PHONY: all clean'
 put
 DESTS=""
+SKIPTARGETS=" "
 for PROG in ${PROGS}; do
+	_CC=$(eval echo \$$(echo "CC_${PROG}"))
+	[ "${_CC}" ] || _CC=${CC}
 	_BDIR=$(eval echo \$$(echo "BDIR_${PROG}"))
 	[ "${_BDIR}" ] || _BDIR=${BDIR}
-	DESTS="${_BDIR}/${PROG} ${DESTS}"
+	# check the compiler
+	${_CC} &> /dev/null
+	if [ "x${?}" == "x127" ]; then
+		echo "WARNING: Compiler is not available: ${_CC}"
+		SKIPTARGETS=" ${PROG}${SKIPTARGETS}"
+	else
+		DESTS="${_BDIR}/${PROG} ${DESTS}"
+	fi
 done
 put "all: ${DESTS}"
 put
 BDIRS=" "
 echo "Generating dependencies for:"
 for PROG in ${PROGS}; do
+	if [ "$(echo "${SKIPTARGETS}" | grep " ${PROG} ")"  ]; then
+		echo "  ${PROG}: skipping"
+		continue
+	fi
 	echo "  ${PROG} "
 
 	# try to load the actual PROG-specific settings
@@ -63,6 +93,8 @@ for PROG in ${PROGS}; do
 		echo "No FILES defined for ${PROG}."
 		exit 1
 	fi
+	# use prefix if available
+	[ ${CCPREFIX} ] && _CC="${CCPREFIX} ${_CC}"
 
 	OBJS=""
 	for FILE in ${_FILES}; do
