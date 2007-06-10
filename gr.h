@@ -19,7 +19,7 @@ int grSetSurface(SDL_Surface *s);
 void grBegin();
 void grEnd();
 
-int grRGB(int r, int g, int b);
+int (*grRGB)(int r, int g, int b);
 void grPutPixel(int x, int y);
 void grBar(int x1, int y1, int x2, int y2);
 void grLine(int x1, int y1, int x2, int y2);

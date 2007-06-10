@@ -1,3 +1,6 @@
+/**
+ * gr.c
+ */
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -22,6 +25,9 @@ static struct {
 	int x, y;
 } pos;
 
+/**
+ * Swaps two integers.
+ */
 static void
 isw(int *a, int *b)
 {
@@ -30,19 +36,42 @@ isw(int *a, int *b)
 	*b = c;
 }
 
-int
-grRGB(int r, int g, int b)
+/**
+ * Makes a color according to the current pixel format from the
+ * specified RGB values.
+ */
+int (*grRGB)(int r, int g, int b) = NULL;
+
+static int
+grRGB15(int r, int g, int b)
 {
-	switch (sf->format->BytesPerPixel) {
-		case 2:
-			return	(((r >> 3) & 0x1f) << 11) |
-				(((g >> 2) & 0x3f) << 5) |
-				(((b >> 3) & 0x1f));
-		default:
-			return 0xffffff;
-	}
+	return	(((r >> 3) & 0x1f) << 10) |
+		(((g >> 3) & 0x1f) << 5) |
+		(((b >> 3) & 0x1f));
 }
 
+static int
+grRGB16(int r, int g, int b)
+{
+	return	(((r >> 3) & 0x1f) << 11) |
+		(((g >> 2) & 0x3f) << 5) |
+		(((b >> 3) & 0x1f));
+}
+
+static int
+grRGB24(int r, int g, int b)
+{
+	return	((r & 0xff) << 16) |
+		((g & 0xff) << 8) |
+		((b & 0xff));
+}
+
+/**
+ * Set up a viewport over the drawing area.
+ * After setting up a viewport, all drawing routines will interpret
+ * their parameters as relative coorditates to the left upper corner
+ * of the current viewport.
+ */
 void
 grSetViewPort(int x1, int y1, int x2, int y2)
 {
@@ -97,7 +126,11 @@ grExtendUpdateArea(int x, int y)
 static void
 grSetPixel8(unsigned offs)
 {
+#ifdef INVERTFB
+	char *p = pixelsend - offs;
+#else /* INVERTFB */
 	char *p = sf->pixels + offs;
+#endif /* INVERTFB */
 	*p = grCurColor;
 }
 
@@ -115,14 +148,22 @@ grSetPixel16(unsigned offs)
 static void
 grSetPixel24(unsigned offs)
 {
+#ifdef INVERTFB
+	char *p = pixelsend - (offs * 3);
+#else /* INVERTFB */
 	char *p = sf->pixels + (offs * 3);
+#endif /* INVERTFB */
 	*p = grCurColor & 0xffffff;
 }
 
 static void
 grSetPixel32(unsigned offs)
 {
+#ifdef INVERTFB
+	int *p = pixelsend - (offs << 2);
+#else /* INVERTFB */
 	int *p = sf->pixels + (offs << 2);
+#endif /* INVERTFB */
 	*p = grCurColor;
 }
 
@@ -130,54 +171,78 @@ grSetPixel32(unsigned offs)
 static void
 grXorPixel8(unsigned offs)
 {
+#ifdef INVERTFB
+	char *p = pixelsend - offs;
+#else /* INVERTFB */
 	char *p = sf->pixels + offs;
+#endif /* INVERTFB */
 	*p ^= grCurColor;
 }
 
 static void
 grXorPixel16(unsigned offs)
 {
+#ifdef INVERTFB
+	short *p = pixelsend - (offs << 1);
+#else /* INVERTFB */
 	short *p = sf->pixels + (offs << 1);
+#endif /* INVERTFB */
 	*p ^= grCurColor;
 }
 
 static void
 grXorPixel24(unsigned offs)
 {
+#ifdef INVERTFB
+	char *p = pixelsend - (offs * 3);
+#else /* INVERTFB */
 	char *p = sf->pixels + (offs * 3);
+#endif /* INVERTFB */
 	*p ^= grCurColor & 0xffffff;
 }
 
 static void
 grXorPixel32(unsigned offs)
 {
+#ifdef INVERTFB
+	int *p = pixelsend - (offs << 2);
+#else /* INVERTFB */
 	int *p = sf->pixels + (offs << 2);
+#endif /* INVERTFB */
 	*p ^= grCurColor;
 }
 
-typedef void (*grDrawPixel_t)(unsigned offs);
+typedef void (*grDrawPixelFunc_t)(unsigned);
+typedef grDrawPixelFunc_t grDrawPixelSet_t[PMD_LAST];
 
-static grDrawPixel_t grDrawPixels[4][PMD_LAST] = {
-	{ grSetPixel8 , grXorPixel8  },
-	{ grSetPixel16, grXorPixel16 },
-	{ grSetPixel24, grXorPixel24 },
-	{ grSetPixel32, grXorPixel32 },
+static grDrawPixelSet_t grDrawPixelSet8 = {
+	grSetPixel8, grXorPixel8
 };
 
-static grDrawPixel_t grDrawPixel = grSetPixel8;
+static grDrawPixelSet_t grDrawPixelSet16 = {
+	grSetPixel16, grXorPixel16
+};
 
+static grDrawPixelSet_t grDrawPixelSet24 = {
+	grSetPixel24, grXorPixel24
+};
+
+static grDrawPixelSet_t grDrawPixelSet32 = {
+	grSetPixel32, grXorPixel32
+};
+
+static grDrawPixelSet_t *grDrawPixelSet = NULL;
+static grDrawPixelFunc_t grDrawPixel = NULL;
 static pixelmode_t grPixelMode = PMD_SET;
 
 void
 grSetPixelMode(pixelmode_t pm)
 {
+	if (pm < PMD_FIRST) pm = PMD_FIRST;
+	if (pm >= PMD_LAST) pm = PMD_LAST - 1;
 	grPixelMode = pm;
-	if (grPixelMode < PMD_FIRST) grPixelMode = PMD_FIRST;
-	if (grPixelMode >= PMD_LAST) grPixelMode = PMD_LAST - 1;
 	if (sf == NULL) return;
-	int nb = sf->format->BytesPerPixel - 1;
-	if (nb < 0 || nb > 3) return;
-	grDrawPixel = grDrawPixels[nb][grPixelMode];
+	grDrawPixel = (*grDrawPixelSet)[grPixelMode];
 }
 
 void
@@ -402,11 +467,32 @@ grEnd()
 	}
 }
 
+static struct {
+	int bpp;
+	int (*rgbfunc)(int, int, int);
+	grDrawPixelSet_t *drawpixelset;
+} bitdep[] = {
+	{  8, NULL, &grDrawPixelSet8 },
+	{ 15, grRGB15, &grDrawPixelSet16 },
+	{ 16, grRGB16, &grDrawPixelSet16 },
+	{ 24, grRGB24, &grDrawPixelSet24 },
+	{ 32, grRGB24, &grDrawPixelSet32 },
+	{ 0 }
+};
+
 int
 grSetSurface(SDL_Surface *s)
 {
+	int i;
+
 	if (s == NULL) return 0;
 	sf = s;
+	for (i = 0; bitdep[i].bpp; ++i) {
+		if (bitdep[i].bpp == sf->format->BitsPerPixel) {
+			grRGB = bitdep[i].rgbfunc;
+			grDrawPixelSet = bitdep[i].drawpixelset;
+		}
+	}
 	grSetPixelMode(grPixelMode);
 	grSetViewPort(0, 0, sf->w - 1, sf->h - 1);
 #ifdef INVERTFB
