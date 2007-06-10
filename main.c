@@ -45,9 +45,11 @@ main_switchtogame()
 int
 main_loadmap(int num)
 {
+	map_t *map = new_map(num, player);
+	if (map == NULL) return 0;
 	free_map(curmap);
-	curmap = new_map(num, player);
-	return curmap != NULL;
+	curmap = map;
+	return !0;
 }
 
 int
