@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL/SDL.h>
 
 #include "player.h"
@@ -99,10 +100,9 @@ EventFilter(const SDL_Event *ev)
 	return ev->type == SDL_KEYDOWN || ev->type == SDL_QUIT;
 }
 
-int
-main()
+static void
+main_init()
 {
-	SDL_Event ev;
 	SDL_Surface *sface;
 
 	SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
@@ -110,28 +110,47 @@ main()
 	sface = SDL_SetVideoMode(240, 320, 16, SDL_HWSURFACE);
 	if (sface == NULL) {
 		SDL_Quit();
-		return 1;
+		exit(1);
 	}
 	if (!grSetSurface(sface)) {
-		return 1;
+		SDL_Quit();
+		exit(1);
 	}
 	SDL_EnableKeyRepeat(250, 30);
 	SDL_EnableUNICODE(1);
 	SDL_SetEventFilter(EventFilter);
 	player = new_player();
 	main_switchtomenu();
-	while (!SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_QUITMASK)) {
-		SDL_Event ev;
+}
 
-		SDL_PumpEvents();
-		if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_KEYDOWNMASK) > 0) {
-			keyboard(ev.key.keysym.sym);
-		}
-		SDL_Delay(5);
-	}
+static void
+main_done()
+{
 	free_map(curmap);
 	free_player(player);
 	SDL_Quit();
+}
+
+static void
+main_run()
+{
+	SDL_Event ev;
+
+	while (SDL_WaitEvent(&ev) == 1 && ev.type != SDL_QUIT) {
+		switch (ev.type) {
+			case SDL_KEYDOWN:
+				keyboard(ev.key.keysym.sym);
+				break;
+		}
+	}
+}
+
+int
+main()
+{
+	main_init();
+	main_run();
+	main_done();
 	return 0;
 }
 
