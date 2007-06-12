@@ -22,6 +22,27 @@ postQuit()
 	SDL_PushEvent(&ev);
 }
 
+static void
+main_showinfo()
+{
+	if (curmap == NULL) {
+		return;
+	}
+	grBegin();
+	grSetColor(0);
+	grBar(8, 250, 231, 311);
+	grSetColor(grRGB(0xff, 0xff, 0));
+	grRectangle(8, 250, 231, 311);
+	grSetColor(grRGB(0xa0, 0xa0, 0xa0));
+	grSetPos(16, 254);
+	grprintf("Current map: %d", map_getnum(curmap));
+	grSetPos(16, 270);
+	grprintf("Moves: %d", player_moves(player));
+	grSetPos(16, 286);
+	grprintf("Pushes: %d", player_pushes(player));
+	grEnd();
+}
+
 static void (*keyboard)(int key);
 
 static void
@@ -35,6 +56,7 @@ main_switchtomenu()
 {
 	keyboard = menu_keyboard;
 	menu_draw();
+	main_showinfo();
 }
 
 void

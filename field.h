@@ -33,7 +33,7 @@ int field_gettype(const field_t *this);
 void field_setseen(field_t *this, int bo);
 void field_getcoords(const field_t *this, int *x, int *y);
 void field_draw(const field_t *this);
-field_t *field_playermove(field_t *this, int dir);
+field_t *field_playermove(field_t *this, int dir, int *nmoved);
 void field_setdimensions(int w, int h);
 
 #endif /* _field_H */

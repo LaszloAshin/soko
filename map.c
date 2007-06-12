@@ -95,6 +95,7 @@ new_map(int num, player_t *player)
 			list_insert(this->fields, field);
 			if (i & FIELD_PLAYER) {
 				player_setpos(player, field);
+				player_resetcounters(player);
 			}
 			neigh = map_getfieldforcoords(this, x, y - 1);
 			if (neigh != NULL) {

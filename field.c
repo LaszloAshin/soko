@@ -163,10 +163,11 @@ field_draw(const field_t *this)
 }
 
 field_t *
-field_playermove(field_t *this, int dir)
+field_playermove(field_t *this, int dir, int *nmoved)
 {
 	field_t *neigh1;
 
+	if (nmoved != NULL) *nmoved = 0;
 	neigh1 = field_getneigh(this, dir);
 	if (neigh1 == NULL) return NULL;
 	if (!(neigh1->type & FIELD_FREE)) return NULL;
@@ -177,6 +178,7 @@ field_playermove(field_t *this, int dir)
 		if (neigh2->type & FIELD_BOX) return NULL;
 		neigh1->type &= ~FIELD_BOX;
 		neigh2->type |= FIELD_BOX;
+		if (nmoved != NULL) ++(*nmoved);
 		grBegin();
 		field_draw(neigh2);
 	} else {
@@ -184,6 +186,7 @@ field_playermove(field_t *this, int dir)
 	}
 	this->type &= ~FIELD_PLAYER;
 	neigh1->type |= FIELD_PLAYER;
+	if (nmoved != NULL) ++(*nmoved);
 	field_draw(this);
 	field_draw(neigh1);
 	grEnd();

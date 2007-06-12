@@ -12,6 +12,7 @@
 
 typedef struct {
 	field_t *field;
+	int moves, pushes;
 } player_t;
 
 #include "player.h"
@@ -41,9 +42,14 @@ free_player(player_t *this)
 int
 player_move(player_t *this, int dir)
 {
-	field_t *neigh = field_playermove(this->field, dir);
+	int i;
+	field_t *neigh = field_playermove(this->field, dir, &i);
 	if (neigh != NULL) {
 		player_setpos(this, neigh);
+		++this->moves;
+		if (i > 1) {
+			++this->pushes;
+		}
 		return 1;
 	}
 	return 0;
@@ -83,5 +89,23 @@ player_keyboard(player_t *this, map_t *map, int key)
 	if (bo) {
 		main_nextmap() ? main_switchtogame() : main_switchtomenu();
 	}
+}
+
+void
+player_resetcounters(player_t *this)
+{
+	this->pushes = this->moves = 0;
+}
+
+int
+player_moves(const player_t *this)
+{
+	return this->moves;
+}
+
+int
+player_pushes(const player_t *this)
+{
+	return this->pushes;
 }
 
