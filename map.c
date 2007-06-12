@@ -86,6 +86,12 @@ new_map(int num, player_t *player)
 			case 'x':
 				i = FIELD_FREE | FIELD_DEST;
 				break;
+			case '@':
+				i = FIELD_FREE | FIELD_DEST | FIELD_BOX;
+				break;
+			case 'X':
+				i = FIELD_FREE | FIELD_DEST | FIELD_PLAYER;
+				break;
 			default:
 				break;
 		}
