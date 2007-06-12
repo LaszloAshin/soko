@@ -111,6 +111,10 @@ new_map(int num, player_t *player)
 	}
 	fclose(f);
 	if (--x > w) w = x;
+	if (w < 3 || y < 3) {
+		free_map(this);
+		return NULL;
+	}
 	field_setdimensions(w, y);
 	return this;
 }
