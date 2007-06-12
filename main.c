@@ -6,6 +6,8 @@
 #include "map.h"
 #include "gr.h"
 #include "menu.h"
+#include "inval.h"
+#include "main.h"
 
 static map_t *curmap = NULL;
 static player_t *player = NULL;
@@ -40,6 +42,24 @@ main_switchtogame()
 	if (curmap == NULL) return;
 	keyboard = main_playerkeyboard;
 	map_draw(curmap);
+}
+
+static void
+main_mapselected(int allright, int num)
+{
+	if (!allright || !main_loadmap(num)) {
+		main_switchtomenu();
+	} else {
+		main_switchtogame();
+	}
+}
+
+void
+main_switchtomapsel()
+{
+	inval_setargs("Select map", 1, 10, 0, main_mapselected);
+	keyboard = inval_keyboard;
+	inval_draw();
 }
 
 int

@@ -48,6 +48,7 @@ static struct {
 } items[] = {
 	{ "New game", menu_newgame },
 	{ "Restart map", menu_restartmap},
+	{ "Select map", main_switchtomapsel },
 	{ "Next map", menu_nextmap },
 	{ "Previous map", menu_prevmap },
 	{ "Exit game", postQuit },
