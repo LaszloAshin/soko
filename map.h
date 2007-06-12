@@ -17,6 +17,7 @@ void free_map(map_t *this);
 void map_draw(map_t *this);
 int map_isdone(map_t *this);
 int map_getnum(map_t *this);
+int map_count();
 
 #endif /* _map_H */
 

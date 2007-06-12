@@ -159,3 +159,34 @@ map_getnum(map_t *this)
 	return this->num;
 }
 
+int
+map_count()
+{
+	static int result = -1;
+
+	if (result < 0) {
+		int hi, lo, me, bo;
+		char fname[8]; /* "maps/xx" */
+
+		lo = 1;
+		hi = 0xff;
+		while (hi >= lo) {
+			FILE *f;
+
+			me = (lo + hi) / 2;
+			snprintf(fname, sizeof(fname), "maps/%02x", me);
+			f = fopen(fname, "r");
+			bo = (f != NULL);
+			if (bo) {
+				lo = me + 1;
+				fclose(f);
+			} else {
+				hi = me - 1;
+			}
+/*			printf("%s %d %d %d %d\n", fname, bo, lo, me, hi);*/
+		}
+		result = bo ? me : (me - 1);
+	}
+	return result;
+}
+

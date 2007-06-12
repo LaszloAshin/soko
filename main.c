@@ -58,7 +58,7 @@ main_mapselected(int allright, int num)
 void
 main_switchtomapsel()
 {
-	inval_setargs("Select map", 1, 10, 0, main_mapselected);
+	inval_setargs("Select map", 1, map_count(), 0, main_mapselected);
 	keyboard = inval_keyboard;
 	inval_draw();
 }
