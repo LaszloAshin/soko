@@ -25,7 +25,9 @@ typedef enum {
 typedef struct _field_t field_t;
 #endif /* _field_C */
 
-field_t *new_field();
+#include "map.h"
+
+field_t *new_field(int x, int y, int type, map_t *map);
 void free_field(field_t *this);
 void field_addneigh(field_t *this, int dir, field_t *that);
 field_t *field_getneigh(const field_t *this, int dir); 

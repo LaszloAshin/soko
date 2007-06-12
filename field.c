@@ -14,12 +14,14 @@ typedef struct field_s {
 	int x, y;
 	int type;
 	struct field_s *neigh[4];
+	struct _map_t *map;
 } field_t;
 
+#include "map.h"
 #include "field.h"
 
 field_t *
-new_field(int x, int y, int type)
+new_field(int x, int y, int type, map_t *map)
 {
 	field_t *this;
 	int i;
@@ -28,6 +30,7 @@ new_field(int x, int y, int type)
 	this->x = x;
 	this->y = y;
 	this->type = type;
+	this->map = map;
 	for (i = 0; i < 4; ++i) {
 		this->neigh[i] = NULL;
 	}
@@ -179,6 +182,15 @@ field_playermove(field_t *this, int dir, int *nmoved)
 		neigh1->type &= ~FIELD_BOX;
 		neigh2->type |= FIELD_BOX;
 		if (nmoved != NULL) ++(*nmoved);
+		if (!(neigh1->type & FIELD_DEST)) {
+			if (neigh2->type & FIELD_DEST) {
+				map_box_arrive(this->map);
+			}
+		} else {
+			if (!(neigh2->type & FIELD_DEST)) {
+				map_box_leave(this->map);
+			}
+		}
 		grBegin();
 		field_draw(neigh2);
 	} else {

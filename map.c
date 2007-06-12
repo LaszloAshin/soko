@@ -8,16 +8,18 @@
 #include <stdio.h>
 
 #include "list.h"
-#include "field.h"
 
 typedef struct {
 	int num;
-	list_t *fields;
+	struct _list_t *fields;
+	int notinplace;
 } map_t;
 
 #include "map.h"
 #include "gr.h"
 #include "player.h"
+#include "field.h"
+#include "main.h"
 
 field_t *
 map_getfieldforcoords(map_t *this, int x, int y)
@@ -61,6 +63,7 @@ new_map(int num, player_t *player)
 	this->num = num;
 	this->fields = new_list((void (*)(void *))free_field, 0);
 	w = x = y = 0;
+	this->notinplace = 0;
 	while ((ch = fgetc(f)) != EOF) {
 		i = -1;
 		switch (ch) {
@@ -82,6 +85,7 @@ new_map(int num, player_t *player)
 				break;
 			case 'o':
 				i = FIELD_FREE | FIELD_BOX;
+				++this->notinplace;
 				break;
 			case 'x':
 				i = FIELD_FREE | FIELD_DEST;
@@ -97,7 +101,7 @@ new_map(int num, player_t *player)
 		}
 		if (i >= 0) {
 			field_t *neigh;
-			field_t *field = new_field(x, y, i);
+			field_t *field = new_field(x, y, i, this);
 			list_insert(this->fields, field);
 			if (i & FIELD_PLAYER) {
 				player_setpos(player, field);
@@ -146,25 +150,6 @@ map_draw(map_t *this)
 }
 
 int
-map_isdone(map_t *this)
-{
-	int isdone = 1;
-	field_t *field;
-	list_iterator_t *i = new_list_iterator(this->fields);
-	while ((field = list_iterator_current(i)) != NULL) {
-		int ft = field_gettype(field);
-		if ((ft & (FIELD_DEST | FIELD_BOX)) &&
-		(ft & (FIELD_DEST | FIELD_BOX)) != (FIELD_DEST | FIELD_BOX)) {
-			isdone = 0;
-			break;
-		}
-		list_iterator_next(i);
-	}
-	free_list_iterator(i);
-	return isdone;
-}
-
-int
 map_getnum(map_t *this)
 {
 	return this->num;
@@ -199,5 +184,23 @@ map_count()
 		result = bo ? me : (me - 1);
 	}
 	return result;
+}
+
+void
+map_box_arrive(map_t *this)
+{
+	--this->notinplace;
+}
+
+void
+map_box_leave(map_t *this)
+{
+	++this->notinplace;
+}
+
+int
+map_isdone(const map_t *this)
+{
+	return !this->notinplace;
 }
 

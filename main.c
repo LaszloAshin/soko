@@ -48,7 +48,14 @@ static void (*keyboard)(int key);
 static void
 main_playerkeyboard(int key)
 {
-	player_keyboard(player, curmap, key);
+	player_keyboard(player, key);
+	if (curmap != NULL && map_isdone(curmap)) {
+		if (main_nextmap()) {
+			main_switchtogame();
+		} else {
+			main_switchtomenu();
+		}
+	}
 }
 
 void
