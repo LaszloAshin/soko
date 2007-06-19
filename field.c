@@ -5,6 +5,7 @@
 #define _field_C	1
 
 static int blocksize = 10;
+static int x0, y0;
 
 #include <malloc.h>
 
@@ -87,6 +88,11 @@ field_getcoords(const field_t *this, int *x, int *y)
 void
 field_draw(const field_t *this)
 {
+	int x1 = x0 + this->x * blocksize;
+	int y1 = y0 + this->y * blocksize;
+	int x2 = x1 + blocksize - 1;
+	int y2 = y1 + blocksize - 1;
+
 	if (!this->type) {
 		grSetColor(grRGB(0x80, 0x80, 0x80));
 	} else if (this->type & FIELD_BOX) {
@@ -96,72 +102,32 @@ field_draw(const field_t *this)
 	} else {
 		grSetColor(grRGB(0xff, 0xff, 0xff));
 	}
-	grBar(
-		this->x * blocksize,
-		this->y * blocksize,
-		(this->x + 1) * blocksize - 1,
-		(this->y + 1) * blocksize - 1
-	);
+	grBar(x1, y1, x2, y2);
 	grSetColor(0);
 	if (!this->type) {
 		if (this->neigh[FIELD_UP] != NULL &&
 		(this->neigh[FIELD_UP]->type & FIELD_FREE)) {
-			grLine(
-				this->x * blocksize,
-				this->y * blocksize,
-				(this->x + 1) * blocksize - 1,
-				this->y * blocksize
-			);
+			grLine(x1, y1, x2, y1);
 		}
 		if (this->neigh[FIELD_RIGHT] != NULL &&
 		(this->neigh[FIELD_RIGHT]->type & FIELD_FREE)) {
-			grLine(
-				(this->x + 1) * blocksize - 1,
-				this->y * blocksize,
-				(this->x + 1) * blocksize - 1,
-				(this->y + 1) * blocksize - 1
-			);
+			grLine(x2, y1, x2, y2);
 		}
 		if (this->neigh[FIELD_DOWN] != NULL &&
 		(this->neigh[FIELD_DOWN]->type & FIELD_FREE)) {
-			grLine(
-				this->x * blocksize,
-				(this->y + 1) * blocksize - 1,
-				(this->x + 1) * blocksize - 1,
-				(this->y + 1) * blocksize - 1
-			);
+			grLine(x1, y2, x2, y2);
 		}
 		if (this->neigh[FIELD_LEFT] != NULL &&
 		(this->neigh[FIELD_LEFT]->type & FIELD_FREE)) {
-			grLine(
-				this->x * blocksize,
-				this->y * blocksize,
-				this->x * blocksize,
-				(this->y + 1) * blocksize - 1
-			);
+			grLine(x1, y1, x1, y2);
 		}
 	} else if (this->type & FIELD_BOX) {
-		grRectangle(
-			this->x * blocksize,
-			this->y * blocksize,
-			(this->x + 1) * blocksize - 1,
-			(this->y + 1) * blocksize - 1
-		);
+		grRectangle(x1, y1, x2, y2);
 	} else if (this->type & FIELD_PLAYER) {
 		grSetColor(grRGB(0, 0xa0, 0));
-		grBar(
-			this->x * blocksize + 1,
-			this->y * blocksize + 1,
-			(this->x + 1) * blocksize - 2,
-			(this->y + 1) * blocksize - 2
-		);
+		grBar(x1 + 1, y1 + 1, x2 - 1, y2 - 1);
 		grSetColor(0);
-		grRectangle(
-			this->x * blocksize + 1,
-			this->y * blocksize + 1,
-			(this->x + 1) * blocksize - 2,
-			(this->y + 1) * blocksize - 2
-		);
+		grRectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1);
 	}
 }
 
@@ -208,9 +174,14 @@ field_playermove(field_t *this, int dir, int *nmoved)
 void
 field_setdimensions(int w, int h)
 {
-	w = 240 / w;
-	h = 320 / h;
-	if (h < w) w = h;
-	blocksize = w;
+	int sw, sh, x, y;
+
+	grGetScreenDimensions(&sw, &sh);
+	x = sw / w;
+	y = sh / h;
+	if (y < x) x = y;
+	blocksize = x;
+	x0 = (sw - w * blocksize) / 2;
+	y0 = (sh - h * blocksize) / 2;
 }
 

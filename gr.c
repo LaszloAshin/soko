@@ -620,3 +620,26 @@ grAlignMouse(int *mx, int *my)
 	*my -= vp->y1;
 }
 
+void
+grGetScreenDimensions(int *w, int *h)
+{
+	if (w != NULL) {
+		*w = sf->w;
+	}
+	if (h != NULL) {
+		*h = sf->h;
+	}
+}
+
+int
+grGetMaxX()
+{
+	return sf->w - 1;
+}
+
+int
+grGetMaxY()
+{
+	return sf->h - 1;
+}
+

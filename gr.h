@@ -38,5 +38,8 @@ void grAlignMouse(int *mx, int *my);
 void grSetPixelMode(pixelmode_t pm);
 int grPushViewPort();
 int grPopViewPort();
+void grGetScreenDimensions(int *w, int *h);
+int grGetMaxX();
+int grGetMaxY();
 
 #endif /* _GR_H */
