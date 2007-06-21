@@ -12,6 +12,7 @@ typedef struct _list_iterator_t list_iterator_t;
 
 #define LIST_SORT	0x01
 
+void list_flush(list_t *this);
 list_t *new_list(void (*freefunc)(void*), int flags);
 void list_cmpfunc(list_t *this, int (*cmpfunc)(const void *a, const void *b));
 void free_list(list_t *this);

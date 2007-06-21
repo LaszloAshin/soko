@@ -30,7 +30,7 @@ typedef struct {
 /**
  * Removes all items from the list.
  */
-static void
+void
 list_flush(list_t *this)
 {
 	while (this->first != NULL) {

@@ -13,6 +13,7 @@ typedef struct {
 	int num;
 	struct _list_t *fields;
 	int notinplace;
+	int width, height;
 } map_t;
 
 #include "map.h"
@@ -38,38 +39,21 @@ map_getfieldforcoords(map_t *this, int x, int y)
 	return field;
 }
 
-map_t *
-new_map(int num, player_t *player)
+int
+map_load(map_t *this, player_t *player, FILE *f)
 {
-	map_t *this;
-	char fname[8]; /* "maps/xx" */
-	int i, ch;
-	FILE *f;
-	int x, y;
-	int w;
+	int x = 0, y = 0;
+	int ch, i;
 
-	i = snprintf(fname, sizeof(fname), "maps/%02x", num);
-	if (i < 0 || i >= sizeof(fname)) {
-		return NULL;
-	}
-	f = fopen(fname, "r");
-	if (f == NULL) {
-		return NULL;
-	}
-	this = (map_t *)malloc(sizeof(map_t));
-	if (this == NULL) {
-		return this;
-	}
-	this->num = num;
-	this->fields = new_list((void (*)(void *))free_field, 0);
-	w = x = y = 0;
+	list_flush(this->fields);
 	this->notinplace = 0;
+	this->width = this->height = 0;
 	while ((ch = fgetc(f)) != EOF) {
 		i = -1;
 		switch (ch) {
 			case '\n':
 				++y;
-				if (x > w) w = x;
+				if (x > this->width) this->width = x;
 				x = -1;
 				break;
 			case ' ':
@@ -102,6 +86,9 @@ new_map(int num, player_t *player)
 		if (i >= 0) {
 			field_t *neigh;
 			field_t *field = new_field(x, y, i, this);
+			if (field == NULL) {
+				return !0;
+			}
 			list_insert(this->fields, field);
 			if (i & FIELD_PLAYER) {
 				player_setpos(player, field);
@@ -120,13 +107,40 @@ new_map(int num, player_t *player)
 		}
 		++x;
 	}
+	if (--x > this->width) this->width = x;
+	this->height = y;
+	return 0;
+}
+
+map_t *
+new_map(int num, player_t *player)
+{
+	map_t *this;
+	char fname[8]; /* "maps/xx" */
+	int i;
+	FILE *f;
+
+	i = snprintf(fname, sizeof(fname), "maps/%02x", num);
+	if (i < 0 || i >= sizeof(fname)) {
+		return NULL;
+	}
+	f = fopen(fname, "r");
+	if (f == NULL) {
+		return NULL;
+	}
+	this = (map_t *)malloc(sizeof(map_t));
+	if (this == NULL) {
+		return this;
+	}
+	this->num = num;
+	this->fields = new_list((void (*)(void *))free_field, 0);
+	i = map_load(this, player, f);
 	fclose(f);
-	if (--x > w) w = x;
-	if (w < 3 || y < 3) {
+	if (i || this->width < 3 || this->height < 3) {
 		free_map(this);
 		return NULL;
 	}
-	field_setdimensions(w, y);
+	field_setdimensions(this->width, this->height);
 	return this;
 }
 
