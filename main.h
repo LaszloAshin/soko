@@ -5,6 +5,8 @@
 #ifndef _MAIN_H
 #define _MAIN_H	1
 
+#include <stddef.h>
+
 void postQuit();
 void main_switchtomenu();
 void main_switchtogame();

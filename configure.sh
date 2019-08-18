@@ -6,10 +6,11 @@ CC="gcc"
 CFLAGS="-Wall"
 LDFLAGS="-s -O2 -lSDL"
 BDIR="build"
-CCPREFIX="ccache"
+#CCPREFIX="ccache"
 
 # programs to build, separated by one space
-PROGS="soko armsoko"
+#PROGS="soko armsoko"
+PROGS="soko"
 
 # settings for each program listed in PROGS (above)
 # FILES is required for each PROG (filenames must be separated by one space)
@@ -26,7 +27,7 @@ LDFLAGS_armsoko="-s -O2 -Wl,-rpath-link,/home/laci/arm/lib -L/home/laci/arm/lib 
 # don't edit below this line unless you know what you're doing.
 
 # function to simplify the output process (output to Makefile)
-function put() {
+put() {
 	echo "${1}" >> Makefile
 }
 
@@ -107,7 +108,7 @@ for PROG in ${PROGS}; do
 	for FILE in ${_FILES}; do
 		echo "    ${FILE}.c"
 		DEP="$(${_CC} -MM ${FILE}.c -MT ${_BDIR}/${FILE}.o)"
-		[ "x${?}" == "x0" ] || exit 1
+		[ "x${?}" = "x0" ] || exit 1
 		put "${DEP}"
 		put "	@echo \"	CC	${FILE}.o\""
 		put "	@${_CC} ${_CFLAGS} -c ${FILE}.c -o ${_BDIR}/${FILE}.o"
